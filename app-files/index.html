@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TSU Virtual Tour | Tennessee State University Residence Halls in 360°</title>
+<meta name="description" content="Step inside Tennessee State University's residence halls with an interactive 360° virtual tour. Explore lobbies, lounges, rooms and more from anywhere.">
+<meta name="theme-color" content="#0a2463">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site/site.css">
+</head>
+<body>
+
+<a class="skip-link" href="#halls">Skip to residence halls</a>
+
+<!-- ============ Header ============ -->
+<header class="site-header" id="siteHeader">
+  <div class="container header-inner">
+    <a href="#tour" class="brand" aria-label="TSU Virtual Tour home">
+      <span class="brand-mark" aria-hidden="true">TSU</span>
+      <span class="brand-text">
+        <strong>Tennessee State University</strong>
+        <small>Virtual Campus Tour</small>
+      </span>
+    </a>
+    <nav class="main-nav" id="mainNav" aria-label="Main">
+      <a href="#tour">360° Tour</a>
+      <a href="#halls">Residence Halls</a>
+      <a href="#how">How It Works</a>
+      <a href="#visit">Visit TSU</a>
+      <a class="btn btn-white btn-sm" href="https://www.tnstate.edu/" target="_blank" rel="noopener">Apply Now</a>
+    </nav>
+    <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="mainNav">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- ============ Tour / Hero ============ -->
+  <section class="tour" id="tour" aria-label="360 degree virtual tour">
+    <div class="viewer previewing" id="viewer">
+      <div id="pano" class="pano"></div>
+
+      <!-- Intro overlay -->
+      <div class="intro" id="intro">
+        <div class="container intro-inner">
+          <p class="eyebrow"><span class="dot"></span> Live 360° Experience</p>
+          <h1>Find your home<br>at <span class="accent">Tennessee State.</span></h1>
+          <p class="lead">Walk through TSU's residence halls from anywhere. Look around every lobby, lounge and room in immersive 360°&nbsp;&mdash; no campus visit required.</p>
+          <div class="intro-actions">
+            <button class="btn btn-primary btn-lg" id="startTour">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+              Start the Tour
+            </button>
+            <a class="btn btn-ghost btn-lg" href="#halls">Browse Halls</a>
+          </div>
+          <dl class="stats" id="stats">
+            <div><dt id="statHalls">7</dt><dd>Residence halls</dd></div>
+            <div><dt id="statStops">68</dt><dd>360° stops</dd></div>
+            <div><dt>1912</dt><dd>Founded</dd></div>
+          </dl>
+        </div>
+        <a href="#halls" class="scroll-cue" aria-label="Scroll to residence halls"><span></span></a>
+      </div>
+
+      <!-- Tour UI (visible once started) -->
+      <div class="tour-ui" id="tourUi" hidden>
+        <aside class="stops-panel" id="stopsPanel" aria-label="Tour stops">
+          <div class="stops-head">
+            <div>
+              <p class="eyebrow small">Tour Stops</p>
+              <h2>Residence Halls</h2>
+            </div>
+            <button class="icon-btn" id="closeStops" aria-label="Hide tour stops">
+              <svg viewBox="0 0 24 24"><path d="M15.4 7.4 14 6l-6 6 6 6 1.4-1.4L10.8 12z"/></svg>
+            </button>
+          </div>
+          <div class="stops-search">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.8l-.3-.3A6.5 6.5 0 1 0 14 15.5l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg>
+            <input type="search" id="stopSearch" placeholder="Search stops (e.g. lounge)" aria-label="Search tour stops">
+          </div>
+          <div class="stops-list" id="stopsList"></div>
+        </aside>
+
+        <button class="pill-btn stops-open" id="openStops" aria-label="Show tour stops">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+          <span>All Stops</span>
+        </button>
+
+        <div class="now-playing" aria-live="polite">
+          <span class="np-hall" id="npHall">Campus</span>
+          <span class="np-name" id="npName">Tennessee State University</span>
+          <span class="np-count" id="npCount">1 / 69</span>
+        </div>
+
+        <div class="hint" id="dragHint">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11.2V7.5a1.5 1.5 0 0 1 3 0v4.2l4.3 1.6c.9.3 1.4 1.2 1.3 2.1l-.6 4.6H9.6L6 15.3a1.3 1.3 0 0 1 1.9-1.8L9 14.7z"/></svg>
+          Drag to look around · Tap arrows to move
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Halls ============ -->
+  <section class="section halls" id="halls">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Residence Life</p>
+        <h2>Explore every residence hall</h2>
+        <p>Choose a hall to jump straight into its 360° walkthrough&nbsp;&mdash; from the front entrance to the rooms, lounges and shared spaces.</p>
+      </div>
+      <div class="hall-grid" id="hallGrid"></div>
+    </div>
+  </section>
+
+  <!-- ============ How it works ============ -->
+  <section class="section how" id="how">
+    <div class="container">
+      <div class="section-head light">
+        <p class="eyebrow">Getting Around</p>
+        <h2>Tour like you're really here</h2>
+      </div>
+      <ol class="steps">
+        <li>
+          <span class="step-icon"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 0 1-8-8h3l-4-4-4 4h3a10 10 0 0 0 .2 2H4a8 8 0 0 1 8-8V2zm1-13h-2v6l5.2 3.2.8-1.3-4-2.4z"/></svg></span>
+          <h3>Look around</h3>
+          <p>Click and drag (or swipe on your phone) to spin a full 360°. Pinch to zoom in on the details.</p>
+        </li>
+        <li>
+          <span class="step-icon"><svg viewBox="0 0 24 24"><path d="M12 2 4.5 20.3l.7.7L12 18l6.8 3 .7-.7z"/></svg></span>
+          <h3>Follow the arrows</h3>
+          <p>Glowing arrows inside each scene walk you from the entrance to the lobby, upstairs and into a real room.</p>
+        </li>
+        <li>
+          <span class="step-icon"><svg viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h12v2H3z"/></svg></span>
+          <h3>Jump anywhere</h3>
+          <p>Open <em>All Stops</em> to skip to any hall or space, or search for things like "lounge" or "shower".</p>
+        </li>
+        <li>
+          <span class="step-icon"><svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zM7.5 18a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm0-9a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4.5 4.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4.5 4.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm0-9a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg></span>
+          <h3>Roll the dice</h3>
+          <p>Can't decide where to start? Let fate pick a lobby, lounge or room for you.</p>
+          <button class="btn btn-white btn-sm step-action" id="surpriseMe" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.6 9.2 5.4 4 4 5.4l5.2 5.2zM14.5 4l2 2L4 18.6 5.4 20 17.9 7.5l2.1 2.1V4zm.3 9.4-1.4 1.4 3.1 3.1L14.5 20H20v-5.5l-2 2z"/></svg>
+            Surprise me
+          </button>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ Visit CTA ============ -->
+  <section class="section visit" id="visit">
+    <div class="container visit-inner">
+      <div class="visit-copy">
+        <p class="eyebrow">Next Steps</p>
+        <h2>Ready to become a Tiger?</h2>
+        <p>Seeing it online is just the start. Come feel the energy of North Nashville in person, connect with Residence Life, and start your application today.</p>
+      </div>
+      <div class="visit-cards">
+        <a class="visit-card" href="https://www.tnstate.edu/" target="_blank" rel="noopener">
+          <span class="vc-icon"><svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 16H5V9h14zM7 11h5v5H7z"/></svg></span>
+          <span><strong>Schedule a Campus Visit</strong><small>Tour campus in person with a TSU ambassador</small></span>
+          <svg class="vc-arrow" viewBox="0 0 24 24"><path d="M12 4l-1.4 1.4 5.6 5.6H4v2h12.2l-5.6 5.6L12 20l8-8z"/></svg>
+        </a>
+        <a class="visit-card" href="https://www.tnstate.edu/" target="_blank" rel="noopener">
+          <span class="vc-icon"><svg viewBox="0 0 24 24"><path d="M12 3 1 9l11 6 9-4.9V17h2V9zM5 13.2v4L12 21l7-3.8v-4L12 17z"/></svg></span>
+          <span><strong>Apply to TSU</strong><small>Start your journey as a Tennessee State Tiger</small></span>
+          <svg class="vc-arrow" viewBox="0 0 24 24"><path d="M12 4l-1.4 1.4 5.6 5.6H4v2h12.2l-5.6 5.6L12 20l8-8z"/></svg>
+        </a>
+        <a class="visit-card" href="https://www.tnstate.edu/" target="_blank" rel="noopener">
+          <span class="vc-icon"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></span>
+          <span><strong>Housing &amp; Residence Life</strong><small>Room options, move-in info and housing applications</small></span>
+          <svg class="vc-arrow" viewBox="0 0 24 24"><path d="M12 4l-1.4 1.4 5.6 5.6H4v2h12.2l-5.6 5.6L12 20l8-8z"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <span class="brand-mark" aria-hidden="true">TSU</span>
+      <div>
+        <strong>Tennessee State University</strong>
+        <p>3500 John A. Merritt Blvd · Nashville, TN 37209</p>
+      </div>
+    </div>
+    <p class="motto">&ldquo;Think. Work. Serve.&rdquo;</p>
+    <div class="footer-links">
+      <a href="#tour">360° Tour</a>
+      <a href="#halls">Residence Halls</a>
+      <a href="tour.html">Classic Viewer</a>
+      <a href="https://www.tnstate.edu/" target="_blank" rel="noopener">tnstate.edu</a>
+    </div>
+  </div>
+  <div class="container footer-base">
+    <small>&copy; <span id="year"></span> Tennessee State University Virtual Tour. 360° imagery powered by Marzipano.</small>
+  </div>
+</footer>
+
+<script src="vendor/marzipano.js"></script>
+<script src="data.js"></script>
+<script src="site/site.js"></script>
+</body>
+</html>
