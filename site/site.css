@@ -220,13 +220,14 @@ svg { fill: currentColor; }
 
 .now-playing {
   position: absolute; top: calc(var(--header-h) + 12px); right: 16px; max-width: min(380px, 50vw);
-  display: grid; grid-template-columns: 1fr auto; gap: 2px 14px; align-items: center;
-  padding: 12px 18px; border-radius: var(--radius-sm);
+  display: grid; grid-template-columns: 1fr auto auto; gap: 2px 10px; align-items: center;
+  padding: 10px 8px 10px 18px; border-radius: var(--radius-sm);
   background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--glass-border); color: var(--white);
 }
 .np-hall { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--tsu-sky); font-weight: 600; }
 .np-name { grid-column: 1; font-family: var(--font-display); font-weight: 600; font-size: 1.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.np-exit { grid-column: 3; grid-row: 1 / span 2; width: 36px; height: 36px; }
 .np-count { grid-column: 2; grid-row: 1 / span 2; font-size: .8rem; color: rgba(255,255,255,.65); font-variant-numeric: tabular-nums; }
 
 
@@ -234,6 +235,7 @@ svg { fill: currentColor; }
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
   display: flex; align-items: center; gap: 10px; padding: 12px 20px; border-radius: 999px;
   background: rgba(4,14,41,.65); color: var(--white); font-size: .92rem; pointer-events: none;
+  white-space: nowrap; max-width: calc(100% - 32px);
   animation: hint-fade 4.5s forwards;
 }
 .hint svg { width: 24px; height: 24px; animation: hint-drag 1.6s ease-in-out 3; }

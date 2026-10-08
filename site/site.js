@@ -90,7 +90,10 @@
     controls: { mouseViewMode: data.settings.mouseViewMode || 'drag' }
   });
 
-  stops.forEach(function (stop) {
+  // Scenes are created on demand: building all 69 up front downloads every
+  // preview and pins a GPU texture per scene, which crashes mobile Safari.
+  function ensureScene(stop) {
+    if (stop.scene) return stop;
     var d = stop.data;
     var source = Marzipano.ImageUrlSource.fromString(
       'tiles/' + d.id + '/{z}/{f}/{y}/{x}.jpg',
@@ -109,7 +112,27 @@
 
     stop.scene = scene;
     stop.view = view;
-  });
+    return stop;
+  }
+
+  // Free scenes that are no longer reachable in one hop, keeping GPU memory flat.
+  function pruneScenes(keep) {
+    var near = [keep.id].concat(keep.data.linkHotspots.map(function (hs) { return hs.target; }));
+    stops.forEach(function (s) {
+      if (s.scene && near.indexOf(s.id) === -1) {
+        viewer.destroyScene(s.scene);
+        s.scene = null;
+        s.view = null;
+      }
+    });
+  }
+
+  // Warm the browser cache with the previews of the next stops.
+  function preloadNeighbors(stop) {
+    stop.data.linkHotspots.forEach(function (hs) {
+      new Image().src = 'tiles/' + hs.target + '/preview.jpg';
+    });
+  }
 
   function createLinkHotspot(hs) {
     var target = findStop(hs.target);
@@ -174,9 +197,15 @@
   function goTo(stop, opts) {
     opts = opts || {};
     viewer.stopMovement();
+    ensureScene(stop);
     stop.view.setParameters(stop.data.initialViewParameters);
-    stop.scene.switchTo({ transitionDuration: opts.instant ? 0 : 900 });
+    // Set current first: an interrupted switch fires its callback during the
+    // next switchTo, and it must not prune the scene we're switching to.
     current = stop;
+    stop.scene.switchTo({ transitionDuration: opts.instant ? 0 : 900 }, function () {
+      if (current === stop) pruneScenes(stop);
+    });
+    preloadNeighbors(stop);
     applyRotation();
 
     $('#npHall').textContent = stop.hall.name;
@@ -209,7 +238,19 @@
     if (window.scrollY > 10) $('#tour').scrollIntoView({ behavior: 'smooth' });
   }
 
+  // Back to the intro so the page can be scrolled again (on phones the
+  // viewer fills the screen and swallows swipes while touring).
+  function endTour() {
+    touring = false;
+    $('#intro').classList.remove('hide');
+    viewerEl.classList.add('previewing');
+    $('#tourUi').hidden = true;
+    applyRotation();
+    if (history.replaceState) history.replaceState(null, '', location.pathname + location.search);
+  }
+
   $('#startTour').addEventListener('click', function () { startTour(); });
+  $('#exitTour').addEventListener('click', endTour);
 
   // "Roll the dice": jump to a random stop (never the gateway or the current one).
   $('#surpriseMe').addEventListener('click', function () {

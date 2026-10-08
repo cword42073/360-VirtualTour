@@ -4,7 +4,7 @@
     {
       "name": "tsu-tour",
       "runtimeExecutable": "py",
-      "runtimeArgs": ["-m", "http.server", "8080", "-d", "app-files"],
+      "runtimeArgs": ["-m", "http.server", "8080"],
       "port": 8080
     }
   ]
