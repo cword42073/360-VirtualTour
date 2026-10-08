@@ -901,7 +901,7 @@ var APP_DATA = {
           "yaw": 0.031970640116252724,
           "pitch": 0.003116197573787005,
           "title": "Rudolph Community Shower",
-          "text": "This is one of many community showers for Rudolph Hall. Rudolph is Jack &amp; Jill style meaning each room has there own personal sink/shower shared with the adjacent room."
+          "text": "This is one of many community showers for Rudolph Hall. Rudolph is Jack &amp; Jill style meaning each room has their own personal sink/shower shared with the adjacent room."
         }
       ]
     },

@@ -103,11 +103,12 @@
     var view = new Marzipano.RectilinearView(d.initialViewParameters, limiter);
     var scene = viewer.createScene({ source: source, geometry: geometry, view: view, pinFirstLevel: true });
 
+    var all = d.linkHotspots.concat(d.infoHotspots);
     d.linkHotspots.forEach(function (hs) {
-      scene.hotspotContainer().createHotspot(createLinkHotspot(hs), { yaw: hs.yaw, pitch: hs.pitch });
+      scene.hotspotContainer().createHotspot(placeLabel(createLinkHotspot(hs, stop), hs, all), { yaw: hs.yaw, pitch: hs.pitch });
     });
     d.infoHotspots.forEach(function (hs) {
-      scene.hotspotContainer().createHotspot(createInfoHotspot(hs), { yaw: hs.yaw, pitch: hs.pitch });
+      scene.hotspotContainer().createHotspot(placeLabel(createInfoHotspot(hs), hs, all), { yaw: hs.yaw, pitch: hs.pitch });
     });
 
     stop.scene = scene;
@@ -134,7 +135,24 @@
     });
   }
 
-  function createLinkHotspot(hs) {
+  // Touch screens show labels to the right of each hotspot; flip a label to
+  // the left when another hotspot sits just to its right at the same height.
+  function placeLabel(el, hs, all) {
+    var crowded = all.some(function (o) {
+      var dy = o.yaw - hs.yaw;
+      return o !== hs && dy > 0 && dy < 0.35 && Math.abs(o.pitch - hs.pitch) < 0.08;
+    });
+    if (crowded) el.classList.add('label-left');
+    return el;
+  }
+
+  // Short tag: the clean stop name inside a hall, the hall name across halls.
+  function tagFor(target, from) {
+    if (target.hall === from.hall) return target.label;
+    return target.hall.key === 'campus' ? 'Campus Gateway' : target.hall.name;
+  }
+
+  function createLinkHotspot(hs, from) {
     var target = findStop(hs.target);
     var el = document.createElement('button');
     el.className = 'hs-link';
@@ -144,20 +162,58 @@
       '<span class="hs-ring"></span>' +
       '<svg class="hs-arrow" viewBox="0 0 24 24" style="transform:rotate(' + hs.rotation + 'rad)"><path d="M6 15l6-6 6 6"/></svg>' +
       '<span class="hs-label"></span>';
-    el.querySelector('.hs-label').textContent = target ? target.name : '';
+    el.querySelector('.hs-label').textContent = target ? tagFor(target, from) : '';
     el.addEventListener('click', function () { if (target) goTo(target); });
     stopPropagation(el);
     return el;
   }
 
   function createInfoHotspot(hs) {
-    var el = document.createElement('div');
-    el.className = 'hs-link';
-    el.innerHTML = '<span class="hs-ring"></span><span class="hs-label"></span>';
-    el.querySelector('.hs-label').textContent = hs.title;
+    var el = document.createElement('button');
+    el.className = 'hs-link hs-info';
+    el.type = 'button';
+    el.setAttribute('aria-label', 'About: ' + plainText(hs.title));
+    el.setAttribute('aria-controls', 'infoCard');
+    el.setAttribute('aria-expanded', 'false');
+    el.innerHTML =
+      '<span class="hs-ring"></span>' +
+      '<svg class="hs-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 11v6M12 7.5v.01"/></svg>' +
+      '<span class="hs-label"></span>';
+    el.querySelector('.hs-label').textContent = plainText(hs.title);
+    el.addEventListener('click', function () {
+      if (openInfo === el) closeInfo(); else showInfo(hs, el);
+    });
     stopPropagation(el);
     return el;
   }
+
+  // Marzipano stores titles/text as HTML (e.g. "&amp;"); show them as plain text.
+  function plainText(html) {
+    return new DOMParser().parseFromString(html || '', 'text/html').body.textContent;
+  }
+
+  // Info card: lives in the tour UI rather than next to the hotspot so it
+  // never runs off the edge of a phone screen.
+  var openInfo = null;
+  function showInfo(hs, el) {
+    closeInfo();
+    $('#infoTitle').textContent = plainText(hs.title);
+    $('#infoText').textContent = plainText(hs.text);
+    $('#infoCard').hidden = false;
+    el.classList.add('active');
+    el.setAttribute('aria-expanded', 'true');
+    openInfo = el;
+  }
+  function closeInfo() {
+    $('#infoCard').hidden = true;
+    if (openInfo) {
+      openInfo.classList.remove('active');
+      openInfo.setAttribute('aria-expanded', 'false');
+      openInfo = null;
+    }
+  }
+  $('#infoClose').addEventListener('click', closeInfo);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeInfo(); });
 
   function stopPropagation(el) {
     ['touchstart', 'touchmove', 'touchend', 'touchcancel', 'wheel', 'mousewheel', 'mousedown', 'pointerdown'].forEach(function (evt) {
@@ -169,6 +225,24 @@
     for (var i = 0; i < stops.length; i++) if (stops[i].id === id) return stops[i];
     return null;
   }
+
+  // Touch screens: flip a hotspot's tag to the left when it would run off the
+  // right edge (checked once per frame while the view moves).
+  var touchLabels = window.matchMedia('(hover: none)');
+  var labelFrame = 0;
+  viewer.addEventListener('viewChange', function () {
+    if (!touchLabels.matches || labelFrame) return;
+    labelFrame = requestAnimationFrame(function () {
+      labelFrame = 0;
+      var w = viewerEl.clientWidth;
+      document.querySelectorAll('#pano .hs-link').forEach(function (el) {
+        var r = el.getBoundingClientRect();
+        if (!r.width) return;
+        var tag = el.querySelector('.hs-label').offsetWidth;
+        el.classList.toggle('edge-left', r.right + tag > w - 8 && r.left - tag > 8);
+      });
+    });
+  });
 
   // Let the page scroll normally over the viewer (pinch still zooms).
   // The viewer must never scroll; snap back if anything (focus, find-in-page,
@@ -208,6 +282,7 @@
 
   function goTo(stop, opts) {
     opts = opts || {};
+    closeInfo();
     viewer.stopMovement();
     ensureScene(stop);
     stop.view.setParameters(stop.data.initialViewParameters);
@@ -253,6 +328,7 @@
   // viewer fills the screen and swallows swipes while touring).
   function endTour() {
     touring = false;
+    closeInfo();
     $('#intro').classList.remove('hide');
     viewerEl.classList.add('previewing');
     $('#tourUi').hidden = true;
