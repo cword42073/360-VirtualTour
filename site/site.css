@@ -112,8 +112,8 @@ svg { fill: currentColor; }
 .nav-toggle span { display: block; width: 24px; height: 2px; background: var(--white); margin: 5px 0; border-radius: 2px; transition: transform .25s, opacity .25s; }
 
 /* ---------- Tour / Hero ---------- */
-.tour { position: relative; height: 100vh; height: 100svh; min-height: 560px; background: var(--tsu-ink); }
-.viewer { position: absolute; inset: 0; overflow: hidden; background: var(--tsu-ink); }
+.tour { position: relative; height: 100vh; height: 100dvh; min-height: 560px; background: var(--tsu-ink); }
+.viewer { position: absolute; inset: 0; overflow: hidden; overflow: clip; background: var(--tsu-ink); }
 .pano { position: absolute; inset: 0; }
 
 .intro {

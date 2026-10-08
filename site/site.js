@@ -171,6 +171,18 @@
   }
 
   // Let the page scroll normally over the viewer (pinch still zooms).
+  // The viewer must never scroll; snap back if anything (focus, find-in-page,
+  // scrollIntoView) moves it.
+  viewerEl.addEventListener('scroll', function () {
+    if (viewerEl.scrollTop || viewerEl.scrollLeft) viewerEl.scrollTop = viewerEl.scrollLeft = 0;
+  });
+
+  // Mobile address bars resize the viewport; keep the WebGL canvas in sync.
+  function syncSize() { viewer.updateSize(); }
+  window.addEventListener('resize', syncSize);
+  window.addEventListener('orientationchange', syncSize);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', syncSize);
+
   viewerEl.addEventListener('wheel', function (e) {
     if (!e.target.closest('.stops-panel')) e.stopPropagation();
   }, true);
@@ -222,8 +234,7 @@
       g.classList.toggle('active', on);
       if (on && !searchInput.value) g.open = true;
     });
-    var btn = document.querySelector('.stop-items button[data-id="' + stop.id + '"]');
-    if (btn && touring) btn.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    revealCurrentStop();
 
     if (touring && history.replaceState) history.replaceState(null, '', '#stop=' + stop.id);
   }
@@ -323,7 +334,22 @@
   });
 
   $('#closeStops').addEventListener('click', function () { $('#stopsPanel').classList.add('collapsed'); });
-  $('#openStops').addEventListener('click', function () { $('#stopsPanel').classList.remove('collapsed'); });
+  $('#openStops').addEventListener('click', function () {
+    $('#stopsPanel').classList.remove('collapsed');
+    revealCurrentStop();
+  });
+
+  // Scroll only the stop list to the current stop. (scrollIntoView would also
+  // scroll the overflow-hidden viewer to reach the off-screen panel on phones,
+  // shoving the panorama up and leaving a growing black band at the bottom.)
+  function revealCurrentStop() {
+    if (!current || $('#stopsPanel').classList.contains('collapsed')) return;
+    var btn = listEl.querySelector('.stop-items button[data-id="' + current.id + '"]');
+    if (!btn || !btn.offsetParent) return;
+    var b = btn.getBoundingClientRect(), l = listEl.getBoundingClientRect();
+    if (b.top < l.top) listEl.scrollTop += b.top - l.top - 8;
+    else if (b.bottom > l.bottom) listEl.scrollTop += b.bottom - l.bottom + 8;
+  }
 
   // ---------------------------------------------------------------
   // Hall cards
